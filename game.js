@@ -17,7 +17,7 @@ let player = {
     isMovingRight: false
 };
 
-
+let enemiesShootChance =0.003;
 let enemies = [];
 const enemyRows = 3;
 const enemyColumns = 8;
@@ -61,6 +61,9 @@ function gameLoop() {
     checkCollisions();
     checkPlayerHit();
 
+    //shoot
+    enemyShoot();
+    
     // Draw elements
     drawPlayer();
     drawEnemies();
@@ -78,6 +81,19 @@ function movePlayer() {
     if(player.isMovingRight && player.x < canvas.width - player.width) {
         player.x += player.speed;
     }
+}
+//enemy shoot bullets 
+function enemyShoot() {
+    enemies.forEach(enemy => {
+        if(Math.random() < enemiesShootChance && enemy.alive) {
+            enemyBullets.push({
+                x: enemy.x + enemy.width/2 - 2.5,
+                y: enemy.y + enemy.height,
+                width: 5,
+                height: 15
+            });
+        }
+    }); 
 }
 
 // Enemy movement
@@ -109,6 +125,14 @@ function shoot() {
         height: 15,
         speed: -8
     });
+
+    // Check win condition
+    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
+    if (aliveEnemies === 0) {
+        gameActive = false;
+        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
+        gameOverElement.style.display = 'block';
+    }
 }
 
 // Collision detection
@@ -123,6 +147,14 @@ function checkCollisions() {
             }
         });
     });
+
+    // Check win condition
+    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
+    if (aliveEnemies === 0) {
+        gameActive = false;
+        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
+        gameOverElement.style.display = 'block';
+    }
 }
 
 // Helper functions
@@ -133,6 +165,14 @@ function moveEnemyBullets() {
             enemyBullets.splice(index, 1);
         }
     });
+
+    // Check win condition
+    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
+    if (aliveEnemies === 0) {
+        gameActive = false;
+        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
+        gameOverElement.style.display = 'block';
+    }
 }
 
 
@@ -144,6 +184,7 @@ function moveBullets() {
         }
     }); 
 }
+
 function checkPlayerHit() {
     enemyBullets.forEach((bullet, index) => {
         if(checkCollision(bullet, player)) {
@@ -152,6 +193,14 @@ function checkPlayerHit() {
             enemyBullets.splice(index, 1);
         }
     });
+
+    // Check win condition
+    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
+    if (aliveEnemies === 0) {
+        gameActive = false;
+        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
+        gameOverElement.style.display = 'block';
+    }
 }
 
 function drawPlayer() {
@@ -166,6 +215,14 @@ function drawEnemies() {
             ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
         }
     });
+
+    // Check win condition
+    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
+    if (aliveEnemies === 0) {
+        gameActive = false;
+        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
+        gameOverElement.style.display = 'block';
+    }
 }
 
 function drawBullets() {
@@ -173,6 +230,14 @@ function drawBullets() {
     bullets.forEach(bullet => {
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     });
+
+    // Check win condition
+    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
+    if (aliveEnemies === 0) {
+        gameActive = false;
+        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
+        gameOverElement.style.display = 'block';
+    }
 }
 
 function drawEnemyBullets() {
@@ -180,6 +245,14 @@ function drawEnemyBullets() {
     enemyBullets.forEach(bullet => {
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     });
+
+    // Check win condition
+    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
+    if (aliveEnemies === 0) {
+        gameActive = false;
+        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
+        gameOverElement.style.display = 'block';
+    }
 }
 
 function checkCollision(rect1, rect2) {
@@ -193,8 +266,14 @@ function checkCollision(rect1, rect2) {
 document.addEventListener('keydown', (e) => {
     if(e.key === 'ArrowLeft') player.isMovingLeft = true;
     if(e.key === 'ArrowRight') player.isMovingRight = true;
-    if(e.key === ' ' && gameActive) shoot();
-    if(e.key === 'Enter' && !gameActive) restartGame();
+        if(e.key === ' ' && gameActive) shoot();
+    if(e.key === 'Enter') {
+            if(!gameActive) {
+                restartGame();
+            } else {
+                shoot();
+            }
+        }
 });
 
 document.addEventListener('keyup', (e) => {
@@ -206,7 +285,15 @@ document.addEventListener('keyup', (e) => {
 function restartGame() {
     gameActive = true;
     gameOverElement.style.display = 'none';
-    initEnemies(); 
+    gameOverElement.textContent = 'GAME OVER'; // Reset text for next game
+    player.x = canvas.width/2 - 25;
+    player.y = canvas.height - 50;
+    bullets = [];
+    enemyBullets = [];
+    score = 0;
+    scoreElement.textContent = `Score: ${score}`;
+    initEnemies();
+    gameLoop();
 }
 
 
