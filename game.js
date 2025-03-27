@@ -126,13 +126,6 @@ function shoot() {
         speed: -8
     });
 
-    // Check win condition
-    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
-    if (aliveEnemies === 0) {
-        gameActive = false;
-        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
-        gameOverElement.style.display = 'block';
-    }
 }
 
 // Collision detection
@@ -147,13 +140,14 @@ function checkCollisions() {
             }
         });
     });
-
-    // Check win condition
-    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
-    if (aliveEnemies === 0) {
+    
+    // Check if all enemies are eliminated
+    const aliveEnemies = enemies.filter(e => e.alive).length;
+    if(aliveEnemies === 0) {
         gameActive = false;
-        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
-        gameOverElement.style.display = 'block';
+        gameOverElement.textContent = 'VICTORY! Press Enter to go back to the menu';
+        // gameOverElement.style.display = 'block';  // Removed inline override
+        gameOverElement.classList.remove('hidden');
     }
 }
 
@@ -166,13 +160,6 @@ function moveEnemyBullets() {
         }
     });
 
-    // Check win condition
-    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
-    if (aliveEnemies === 0) {
-        gameActive = false;
-        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
-        gameOverElement.style.display = 'block';
-    }
 }
 
 
@@ -189,18 +176,16 @@ function checkPlayerHit() {
     enemyBullets.forEach((bullet, index) => {
         if(checkCollision(bullet, player)) {
             gameActive = false;
-            gameOverElement.style.display = 'block';
+            // gameOverElement.style.display = 'block';  // Removed inline override
             enemyBullets.splice(index, 1);
+
+            // Display game over message with Enter key instruction
+            gameOverElement.textContent = 'GAME OVER. Press Enter to go back to the menu';
+            gameOverElement.classList.remove('hidden');
+        
         }
     });
 
-    // Check win condition
-    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
-    if (aliveEnemies === 0) {
-        gameActive = false;
-        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
-        gameOverElement.style.display = 'block';
-    }
 }
 
 function drawPlayer() {
@@ -216,13 +201,6 @@ function drawEnemies() {
         }
     });
 
-    // Check win condition
-    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
-    if (aliveEnemies === 0) {
-        gameActive = false;
-        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
-        gameOverElement.style.display = 'block';
-    }
 }
 
 function drawBullets() {
@@ -231,13 +209,6 @@ function drawBullets() {
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     });
 
-    // Check win condition
-    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
-    if (aliveEnemies === 0) {
-        gameActive = false;
-        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
-        gameOverElement.style.display = 'block';
-    }
 }
 
 function drawEnemyBullets() {
@@ -246,13 +217,6 @@ function drawEnemyBullets() {
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     });
 
-    // Check win condition
-    const aliveEnemies = enemies.filter(enemy => enemy.alive).length;
-    if (aliveEnemies === 0) {
-        gameActive = false;
-        gameOverElement.textContent = 'VICTORY! Press Enter to restart';
-        gameOverElement.style.display = 'block';
-    }
 }
 
 function checkCollision(rect1, rect2) {
@@ -268,12 +232,14 @@ document.addEventListener('keydown', (e) => {
     if(e.key === 'ArrowRight') player.isMovingRight = true;
         if(e.key === ' ' && gameActive) shoot();
     if(e.key === 'Enter') {
-            if(!gameActive) {
-                restartGame();
-            } else {
-                shoot();
-            }
+        if(!gameActive) {
+            returnToMenu();
+            gameOverElement.classList.add('hidden');
+    gameOverElement.style.display = '';
+        } else {
+            shoot();
         }
+    }
 });
 
 document.addEventListener('keyup', (e) => {
@@ -282,9 +248,9 @@ document.addEventListener('keyup', (e) => {
 });
 
 
-function restartGame() {
+function startGame() {
     gameActive = true;
-    gameOverElement.style.display = 'none';
+    // gameOverElement.style.display = 'none';  // Redundant with hidden class
     gameOverElement.textContent = 'GAME OVER'; // Reset text for next game
     player.x = canvas.width/2 - 25;
     player.y = canvas.height - 50;
@@ -297,8 +263,39 @@ function restartGame() {
 }
 
 
-// Start game
-initEnemies();
-gameLoop();
+// Game initialization
+const startButton = document.getElementById('startButton');
+const mainMenu = document.getElementById('mainMenu');
+
+// Start game handler
+startButton.addEventListener('click', () => {
+    mainMenu.classList.add('hidden');
+    document.getElementById('score').classList.remove('hidden');
+    gameActive = true;
+    initEnemies();
+    gameLoop();
+});
+
+// Modified restart function
+function returnToMenu() {
+    mainMenu.classList.remove('hidden');
+    gameOverElement.classList.add('hidden');
+    gameOverElement.style.display = '';
+    console.log('hide game over');
+
+    gameActive = false;
+
+    // Clear screen
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    player.x = canvas.width/2 - 25;
+    player.y = canvas.height - 50;
+    bullets = [];
+    enemyBullets = [];
+    enemies = [];
+    score = 0;
+    scoreElement.textContent = `Score: ${score}`;
+    initEnemies();
+}
 
 
